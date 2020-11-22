@@ -56,8 +56,7 @@ namespace Launcher
             {
                 Directory.Delete("./updateTemp/", true);
             }
-            Check_Update();
-               // check_ver();
+            check_ver();
         }
         public void check_ver()
         {
@@ -181,6 +180,7 @@ namespace Launcher
         }
         public void Check_Update()
         {
+            Button_Play.IsEnabled = false;
             if (!Directory.Exists("./build/"))
             {
                 Directory.CreateDirectory("./build/");
@@ -240,7 +240,7 @@ namespace Launcher
         }
         private void buildCompleted(object sender, EventArgs e)
         {
-
+            label.Text = "Downloading update... " + downloaderCount + "/" + temp.Count();
             downloaderCount++;;
             if (downloaderCount >= temp.Count())
             {
