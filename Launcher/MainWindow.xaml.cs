@@ -33,6 +33,7 @@ namespace Launcher
         public List<string> temp;
         public List<string> filesToCheck = new List<string>();
         public List<string> filesToUpdate = new List<string>();
+        Dictionary<string, string> hashList = new Dictionary<string, string>();
         public MainWindow()
         {
             if (Environment.GetCommandLineArgs().Contains("finalizeUpdate"))
@@ -55,7 +56,8 @@ namespace Launcher
             {
                 Directory.Delete("./updateTemp/", true);
             }
-                check_ver();
+            Check_Update();
+               // check_ver();
         }
         public void check_ver()
         {
@@ -119,7 +121,7 @@ namespace Launcher
                     using (var stream = File.OpenRead(file))
                     {
                         var hash = md5.ComputeHash(stream);
-                        hashList.Add("." + file.Replace(Globals.exePath, "/"), BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant());
+                        hashList.Add("." + file.Replace(Globals.exePath, "/").Replace(@"build\", "").Replace(@"\","/"), BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant());
                     }
                 }
             }
@@ -187,13 +189,18 @@ namespace Launcher
             foreach (string file in Directory.GetFiles(Globals.exefPath, "*", SearchOption.AllDirectories))
             {
                 filesToCheck.Add(file);
-
             }
-            Dictionary<string, string> hashList = new Dictionary<string, string>();
+            hashList.Clear();
+            
             getHashArray(filesToCheck, hashList);
+            foreach(KeyValuePair<string,string> x in hashList)
+            {
+                Console.WriteLine(x);
+            }
             var json = new WebClient().DownloadString(Constants.releaseFiles + "build/hashlist.json");
             var serverHashList = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             var diff = serverHashList.Where(x => !hashList.Contains(x));
+
             filesToUpdate.Clear();
             foreach (KeyValuePair<string, string> file in diff)
             {
