@@ -28,16 +28,12 @@ namespace Launcher
         public string version { get; set; }
         public string build { get; set; }
     }
-    
-
-
     public partial class MainWindow : Window
     {
         public int downloaderCount = 0;
         public List<string> temp;
         public MainWindow()
         {
-
             if (Environment.GetCommandLineArgs().Contains("finalizeUpdate"))
             {
                 finalizeUpdate();
@@ -62,7 +58,6 @@ namespace Launcher
         }
         public void check_ver()
         {
-
             if (File.Exists(Globals.exePath + "version.json"))
             {
                 var j = new StreamReader(Globals.exePath + "version.json");
@@ -82,7 +77,6 @@ namespace Launcher
             //selfCheck();
             Check_Update();
         }
-
         void selfCheck()
         {
             label.Text = "Checking for updates...";
@@ -124,7 +118,6 @@ namespace Launcher
                 }
             }
         }
-
         void selfUpdate(List<string> filesToUpdate)
         {
             temp = filesToUpdate;
@@ -141,7 +134,6 @@ namespace Launcher
                 webClient.DownloadFileAsync(new Uri(Constants.releaseFiles + "launcher" + file), Globals.exePath + "updateTemp/" + file);
             }
         }
-
         void finalizeUpdate()
         {
             foreach (string file in Directory.GetFiles(Globals.exePath + "updateTemp/", "*", SearchOption.AllDirectories))
