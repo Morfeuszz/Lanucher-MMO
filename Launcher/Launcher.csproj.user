@@ -15,5 +15,7 @@
     </StartArguments>
     <StartWorkingDirectory>
     </StartWorkingDirectory>
+    <StartAction>Project</StartAction>
+    <StartProgram>C:\Users\Borsuk\Desktop\aaaa\Launcher\bin\Debug\Launcher.exe</StartProgram>
   </PropertyGroup>
 </Project>

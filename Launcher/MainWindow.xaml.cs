@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
-using System.Threading;
 using Newtonsoft.Json;
 using System.Net;
 using System.Diagnostics;
@@ -22,7 +21,6 @@ namespace Launcher
     public static class Constants
     {
         public const string releaseFiles = "http://18.192.38.56/release/";
-        public const string checksum = "5d4a2b158c82af4b978f55b259a46590";
     }
 
     public class ver
@@ -39,9 +37,8 @@ namespace Launcher
         public List<string> temp;
         public MainWindow()
         {
-            string[] arguments = Environment.GetCommandLineArgs();
 
-            if (arguments.Contains("finalizeUpdate"))
+            if (Environment.GetCommandLineArgs().Contains("finalizeUpdate"))
             {
                 finalizeUpdate();
             }
@@ -92,7 +89,6 @@ namespace Launcher
             foreach (string file in Directory.GetFiles(Globals.exePath, "*", SearchOption.AllDirectories).Where(x => !x.StartsWith(Globals.exefPath)))
             {
                 filesToCheck.Add(file);
-
             }
             Dictionary<string, string> hashList = new Dictionary<string, string>();
             getHashArray(filesToCheck, hashList);
@@ -109,7 +105,7 @@ namespace Launcher
                 selfUpdate(filesToUpdate);
             } else
             {
-                //Check_Update();
+                Check_Update();
             }
         }
 
@@ -150,7 +146,9 @@ namespace Launcher
         {
             foreach (string file in Directory.GetFiles(Globals.exePath + "updateTemp/", "*", SearchOption.AllDirectories))
             {
+                Console.WriteLine("file here " + file);
                 string filePath = file.Replace("\\updateTemp", "");
+                Console.WriteLine("here " + filePath);
                 if (File.Exists(filePath)){
                     try
                     {
@@ -174,7 +172,10 @@ namespace Launcher
             Process.Start(Globals.exePath + "Launcher.exe");
             System.Windows.Application.Current.Shutdown();
         }
-
+        private void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            progressBar.Value = e.ProgressPercentage;
+        }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             Console.WriteLine(Globals.exePath);
@@ -182,46 +183,75 @@ namespace Launcher
         }
         public void Check_Update()
         {
-            label.Text = "Checking for updates...";
-            var json = new WebClient().DownloadString(Constants.releaseFiles + "version.json");
-            var j = new StreamReader(Globals.exePath + "version.json");
-            var j1 = j.ReadToEnd();
-            j.Close();
-            ver jj = JsonConvert.DeserializeObject<ver>(j1);
-            ver Server = JsonConvert.DeserializeObject<ver>(json);
-            if (jj.version == Server.version)
+            List<string> filesToCheck = new List<string>();
+            foreach (string file in Directory.GetFiles(Globals.exefPath, "*", SearchOption.AllDirectories))
             {
-                var chksm = CreateDirectoryMd5(Globals.exefPath);
-                Console.WriteLine(chksm);
-                if (chksm != Constants.checksum)
-                {
-                    label.Text = "File verification failed. Repairing...";
-                    Dl();
-                }
-                else { ready(); }
+                filesToCheck.Add(file);
+
+            }
+            Dictionary<string, string> hashList = new Dictionary<string, string>();
+            getHashArray(filesToCheck, hashList);
+            var json = new WebClient().DownloadString(Constants.releaseFiles + "build/hashlist.json");
+            var serverHashList = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            var diff = serverHashList.Where(x => !hashList.Contains(x));
+            List<string> filesToUpdate = new List<string>();
+            filesToUpdate.Clear();
+            foreach (KeyValuePair<string, string> file in diff)
+            {
+                filesToUpdate.Add(file.Key.Replace("./", "/"));
+            }
+            if (filesToUpdate.Count > 0)
+            {
+                buildUpdate(filesToUpdate);
             }
             else
             {
-                Button_Play.IsEnabled = false;
-                Dl();
+                ready();
             }
         }
-        public void Dl()
+        void buildUpdate(List<string> filesToUpdate)
         {
-            //var exePath = AppDomain.CurrentDomain.BaseDirectory;
-            WebClient webClient = new WebClient();
-            webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
-            webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
-            webClient.DownloadFileAsync(new Uri(Constants.releaseFiles), Globals.exePath + "build.zip");
+            label.Text = "Downloading update...";
+            downloaderCount = 0;
+            temp.Clear();
+            temp = filesToUpdate;
+            if (!Directory.Exists(Globals.exefPath + "temp"))
+            {
+                Directory.CreateDirectory(Globals.exefPath + "temp");
+            }
+            foreach (string file in filesToUpdate)
+            {
+                WebClient webClient = new WebClient();
+                webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(buildCompleted);
+                webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
+                webClient.DownloadFileAsync(new Uri(Constants.releaseFiles + "build" + file), Globals.exefPath + "temp/" + file);
+            }
         }
-        private void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
-            progressBar.Value = e.ProgressPercentage;
-        }
-        private void Completed(object sender, EventArgs e)
+        private void buildCompleted(object sender, EventArgs e)
         {
             label.Text = "Download completed!";
-           // extract();
+            downloaderCount++;
+            if (downloaderCount >= temp.Count)
+            {
+                build_finalizeUpdate();
+            }
+        }
+        void build_finalizeUpdate()
+        {
+            foreach (string file in Directory.GetFiles(Globals.exefPath + "temp/", "*", SearchOption.AllDirectories))
+            {
+                string filePath = file.Replace(Globals.exefPath + "temp/", Globals.exefPath);
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    File.Move(file, filePath);
+                }
+                else
+                {
+                    File.Move(file, filePath);
+                }
+            }
+            Check_Update();
         }
         private void launcherCompleted(object sender, EventArgs e)
         {
@@ -229,56 +259,8 @@ namespace Launcher
             downloaderCount++;
             if (downloaderCount >= temp.Count)
             {
-                Process.Start(Globals.exePath + "Launcher.exe", "finializeUpdate ");
+                Process.Start(Globals.exePath + "Launcher.exe", "finalizeUpdate");
                 System.Windows.Application.Current.Shutdown();
-            }
-        }
-        public void extract()
-        {
-            label.Text = "Extracting update";
-            try
-            {
-                if (Directory.Exists(Globals.exefPath))
-                {
-                    Directory.Delete(Globals.exefPath, true);
-                }
-            }
-            finally
-            {
-                ZipFile.ExtractToDirectory(Globals.exePath + "build.zip", Globals.exePath);
-                File.Delete(Globals.exePath + "build.zip");
-                var json = new WebClient().DownloadString(Constants.releaseFiles + "version.json");
-                var j = new StreamReader(Globals.exePath + "version.json");
-                var j1 = j.ReadToEnd();
-                ver jj = JsonConvert.DeserializeObject<ver>(j1);
-                j.Close();
-                var chksm = CreateDirectoryMd5(Globals.exefPath);
-                Console.WriteLine(chksm);
-                if (chksm != Constants.checksum)
-                {
-                    label.Text = "File verification failed. Repairing...";
-                    Dl();
-                }
-                else 
-                {
-                    ready(); 
-                }
-            }
-        }
-        public static string CreateDirectoryMd5(string srcPath)
-        {
-            var filePaths = Directory.GetFiles(srcPath, "*", SearchOption.AllDirectories).OrderBy(p => p).ToArray();
-            using (var md5 = MD5.Create())
-            {
-                foreach (var filePath in filePaths)
-                {
-                    byte[] pathBytes = Encoding.UTF8.GetBytes(filePath);
-                    md5.TransformBlock(pathBytes, 0, pathBytes.Length, pathBytes, 0);
-                    byte[] contentBytes = File.ReadAllBytes(filePath);
-                    md5.TransformBlock(contentBytes, 0, contentBytes.Length, contentBytes, 0);
-                }
-                md5.TransformFinalBlock(new byte[0], 0, 0);
-                return BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
             }
         }
         public void ready()
