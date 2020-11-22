@@ -8,7 +8,6 @@ using System.Net;
 using System.Diagnostics;
 using System.IO;
 using System.ComponentModel;
-using System.IO.Compression;
 using System.Security.Cryptography;
 
 namespace Launcher
@@ -32,6 +31,8 @@ namespace Launcher
     {
         public int downloaderCount = 0;
         public List<string> temp;
+        public List<string> filesToCheck = new List<string>();
+        public List<string> filesToUpdate = new List<string>();
         public MainWindow()
         {
             if (Environment.GetCommandLineArgs().Contains("finalizeUpdate"))
@@ -74,23 +75,24 @@ namespace Launcher
                     fs.Write(info, 0, info.Length);
                 }
             }
-            //selfCheck();
-            Check_Update();
+            selfCheck();
         }
         void selfCheck()
         {
             label.Text = "Checking for updates...";
-            List<string> filesToCheck = new List<string>();
             foreach (string file in Directory.GetFiles(Globals.exePath, "*", SearchOption.AllDirectories).Where(x => !x.StartsWith(Globals.exefPath)))
             {
                 filesToCheck.Add(file);
             }
             Dictionary<string, string> hashList = new Dictionary<string, string>();
             getHashArray(filesToCheck, hashList);
+            foreach (KeyValuePair<string,string> hash in hashList)
+            {
+                Console.WriteLine(hash);
+            }
             var json = new WebClient().DownloadString(Constants.releaseFiles + "launcher/hashlist.json");
             var serverHashList = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             var diff = serverHashList.Where(x => !hashList.Contains(x));
-            List<string> filesToUpdate = new List<string>();
             foreach (KeyValuePair<string, string> file in diff)
             {
                 filesToUpdate.Add(file.Key.Replace("./", "/"));
@@ -100,6 +102,7 @@ namespace Launcher
                 selfUpdate(filesToUpdate);
             } else
             {
+                
                 Check_Update();
             }
         }
@@ -177,7 +180,7 @@ namespace Launcher
             {
                 Directory.CreateDirectory("./build/");
             }
-            List<string> filesToCheck = new List<string>();
+            filesToCheck.Clear();
             foreach (string file in Directory.GetFiles(Globals.exefPath, "*", SearchOption.AllDirectories))
             {
                 filesToCheck.Add(file);
@@ -188,7 +191,6 @@ namespace Launcher
             var json = new WebClient().DownloadString(Constants.releaseFiles + "build/hashlist.json");
             var serverHashList = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
             var diff = serverHashList.Where(x => !hashList.Contains(x));
-            List<string> filesToUpdate = new List<string>();
             filesToUpdate.Clear();
             foreach (KeyValuePair<string, string> file in diff)
             {
