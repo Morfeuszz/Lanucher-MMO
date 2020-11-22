@@ -79,7 +79,8 @@ namespace Launcher
                     fs.Write(info, 0, info.Length);
                 }
             }
-            selfCheck();
+            //selfCheck();
+            Check_Update();
         }
 
         void selfCheck()
@@ -134,7 +135,6 @@ namespace Launcher
             }
             foreach (string file in filesToUpdate)
             {
-                Console.WriteLine(file);
                 WebClient webClient = new WebClient();
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(launcherCompleted);
                 webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
@@ -146,9 +146,7 @@ namespace Launcher
         {
             foreach (string file in Directory.GetFiles(Globals.exePath + "updateTemp/", "*", SearchOption.AllDirectories))
             {
-                Console.WriteLine("file here " + file);
                 string filePath = file.Replace("\\updateTemp", "");
-                Console.WriteLine("here " + filePath);
                 if (File.Exists(filePath)){
                     try
                     {
@@ -183,6 +181,10 @@ namespace Launcher
         }
         public void Check_Update()
         {
+            if (!Directory.Exists("./build/"))
+            {
+                Directory.CreateDirectory("./build/");
+            }
             List<string> filesToCheck = new List<string>();
             foreach (string file in Directory.GetFiles(Globals.exefPath, "*", SearchOption.AllDirectories))
             {
@@ -213,7 +215,7 @@ namespace Launcher
         {
             label.Text = "Downloading update...";
             downloaderCount = 0;
-            temp.Clear();
+            //temp.Clear();
             temp = filesToUpdate;
             if (!Directory.Exists(Globals.exefPath + "temp"))
             {
@@ -224,16 +226,20 @@ namespace Launcher
                 WebClient webClient = new WebClient();
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(buildCompleted);
                 webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
+                label.Text = file;
+                new System.IO.FileInfo(Globals.exefPath + "temp/" + file).Directory.Create();
                 webClient.DownloadFileAsync(new Uri(Constants.releaseFiles + "build" + file), Globals.exefPath + "temp/" + file);
             }
         }
         private void buildCompleted(object sender, EventArgs e)
         {
             label.Text = "Download completed!";
-            downloaderCount++;
-            if (downloaderCount >= temp.Count)
+            downloaderCount++;;
+            if (downloaderCount >= temp.Count())
             {
+                
                 build_finalizeUpdate();
+
             }
         }
         void build_finalizeUpdate()
@@ -248,6 +254,7 @@ namespace Launcher
                 }
                 else
                 {
+                    new System.IO.FileInfo(filePath).Directory.Create();
                     File.Move(file, filePath);
                 }
             }
