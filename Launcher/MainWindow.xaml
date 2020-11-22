@@ -8,7 +8,7 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <TextBlock x:Name="buildLabel" Text="Build: " Width="81" Height="30" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="711,10,0,0"/>
-        <Button x:Name="Button_Play" Content="Play" HorizontalAlignment="Center" Width="152" RenderTransformOrigin="0.378,-1.01" Height="60" VerticalAlignment="Center" Margin="630,349,10,10" Click="Button_Click" Background="Gainsboro" />
+        <Button x:Name="Button_Play" Content="Play" HorizontalAlignment="Center" Width="152" RenderTransformOrigin="0.378,-1.01" Height="60" VerticalAlignment="Center" Margin="630,349,10,10" Click="Button_Click" Background="#FFF18708" />
         <Image HorizontalAlignment="Center" Height="324" Margin="-76,-51,309,146" VerticalAlignment="Center" Width="559" Source="_3dtext2gif_ckybbkxuvcme.gif"/>
         <ProgressBar x:Name="progressBar"  HorizontalAlignment="Left" Height="33" Margin="25,363,0,0" VerticalAlignment="Top" Width="520"/>
         <TextBlock x:Name="label"  HorizontalAlignment="Left" Margin="259,327,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
