@@ -74,12 +74,14 @@ namespace Launcher
                     fs.Write(info, 0, info.Length);
                 }
             }
+            Button_Play.IsEnabled = false;
             //selfCheck();
             Check_Update();
         }
         void selfCheck()
         {
             label.Text = "Checking for updates...";
+            Button_Play.IsEnabled = false;
             List<string> filesToCheck = new List<string>();
             foreach (string file in Directory.GetFiles(Globals.exePath, "*", SearchOption.AllDirectories).Where(x => !x.StartsWith(Globals.exefPath)))
             {
@@ -218,14 +220,17 @@ namespace Launcher
                 WebClient webClient = new WebClient();
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(buildCompleted);
                 webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
-                label.Text = file;
+                //label.Text = file;
                 new System.IO.FileInfo(Globals.exefPath + "temp/" + file).Directory.Create();
+                //webClient.OpenRead(Constants.releaseFiles + "build" + file);
+                //Int64 bytes_total = Convert.ToInt64(webClient.ResponseHeaders["Content-Lenght"]);
+                //Console.WriteLine(bytes_total.ToString() + " Bytes.");
                 webClient.DownloadFileAsync(new Uri(Constants.releaseFiles + "build" + file), Globals.exefPath + "temp/" + file);
             }
         }
         private void buildCompleted(object sender, EventArgs e)
         {
-            label.Text = "Download completed!";
+
             downloaderCount++;;
             if (downloaderCount >= temp.Count())
             {
@@ -250,6 +255,7 @@ namespace Launcher
                     File.Move(file, filePath);
                 }
             }
+            label.Text = "Download completed!";
             Check_Update();
         }
         private void launcherCompleted(object sender, EventArgs e)
@@ -267,7 +273,7 @@ namespace Launcher
             label.Text = "Ready to play!";
             Button_Play.IsEnabled = true;
             progressBar.Opacity = 0;
-            check_ver();
+            //check_ver();
         }
     }
 }
