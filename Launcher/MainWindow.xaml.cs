@@ -39,8 +39,9 @@ namespace Launcher
         public List<string> temp;
         public MainWindow()
         {
+            string[] arguments = Environment.GetCommandLineArgs();
 
-            if (Environment.GetCommandLineArgs().Contains("finalizeUpdate"))
+            if (arguments.Contains("finalizeUpdate"))
             {
                 finalizeUpdate();
             }
@@ -228,7 +229,7 @@ namespace Launcher
             downloaderCount++;
             if (downloaderCount >= temp.Count)
             {
-                Process.Start(Globals.exePath + "Launcher.exe", "finializeUpdate");
+                Process.Start(Globals.exePath + "Launcher.exe", "finializeUpdate ");
                 System.Windows.Application.Current.Shutdown();
             }
         }
