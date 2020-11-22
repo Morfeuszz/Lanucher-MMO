@@ -56,7 +56,11 @@ namespace Launcher
             {
                 Directory.Delete("./updateTemp/", true);
             }
+<<<<<<< Updated upstream
             check_ver();
+=======
+               check_ver();
+>>>>>>> Stashed changes
         }
         public void check_ver()
         {
@@ -106,7 +110,9 @@ namespace Launcher
                 selfUpdate(filesToUpdate);
             } else
             {
-                
+                var json2 = new WebClient().DownloadString("http://18.192.38.56/release/version.json");
+                ver version = JsonConvert.DeserializeObject<ver>(json2);
+                versionLabel.Text = version.version;
                 Check_Update();
             }
         }
@@ -166,6 +172,8 @@ namespace Launcher
                 File.Move(file, filePath);
                 }
             }
+
+          
             Process.Start(Globals.exePath + "Launcher.exe");
             System.Windows.Application.Current.Shutdown();
         }
@@ -212,6 +220,10 @@ namespace Launcher
             }
             else
             {
+
+                var json2 = new WebClient().DownloadString("http://18.192.38.56/release/version.json");
+                ver version = JsonConvert.DeserializeObject<ver>(json2);
+                buildLabel.Text = version.build;
                 ready();
             }
         }
@@ -266,7 +278,9 @@ namespace Launcher
                 }
             }
             label.Text = "Download completed!";
-            Check_Update();
+
+
+        Check_Update();
         }
         private void launcherCompleted(object sender, EventArgs e)
         {
