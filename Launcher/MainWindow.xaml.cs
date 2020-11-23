@@ -56,11 +56,8 @@ namespace Launcher
             {
                 Directory.Delete("./updateTemp/", true);
             }
-<<<<<<< Updated upstream
             check_ver();
-=======
-               check_ver();
->>>>>>> Stashed changes
+
         }
         public void check_ver()
         {
